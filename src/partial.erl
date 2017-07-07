@@ -3,11 +3,20 @@
 -define(WILDCARDED_ARGUMENT, {var, _, '_'}).
 
 parse_transform([File, Module, Exports | Abstract], _) ->
+    io:format("Original AST: ~p~n", [Abstract]),
     Transformed = transform(Abstract),
+    io:format("Transformed AST: ~p~n", [Transformed]),
     [File, Module, Exports | Transformed].
 
+transform({op, Line, Name, Left, Right}) ->
+    case lists:any(fun is_wildcard_variable/1, [Left, Right]) of
+	true ->
+	    generate_partially_applied_operation(Line, Name, transform(Left), transform(Right));
+	false ->
+	    {op, Line, Name, transform(Left), transform(Right)}
+    end;
 transform({call, Line, Name, Args}) ->
-    case arguments_contain_wildcards(Args) of
+    case lists:any(fun is_wildcard_variable/1, Args) of
         true ->
             generate_partially_applied_function(Line, Name, transform(Args));
         false ->
@@ -20,12 +29,28 @@ transform([X|Xs]) when is_list(Xs) ->
 transform(X) ->
     X.
 
-arguments_contain_wildcards([]) ->
-    false;
-arguments_contain_wildcards([?WILDCARDED_ARGUMENT | _]) ->
+is_wildcard_variable(?WILDCARDED_ARGUMENT) ->
     true;
-arguments_contain_wildcards([_ | Rest]) ->
-    arguments_contain_wildcards(Rest).
+is_wildcard_variable(_) ->
+    false.
+
+generate_partially_applied_operation(Line, Name, Left, Right) ->
+    New_left = case Left of
+		   ?WILDCARDED_ARGUMENT ->
+		       {var, Line, create_unapplied_argument_name(1)};
+		   _ ->
+		       Left
+	       end,
+    New_right = case Right of
+		    ?WILDCARDED_ARGUMENT ->
+			{var, Line, create_unapplied_argument_name(2)};
+		    _ ->
+			Right
+		end,
+    Missing_argument_indices = find_wildcarded_indices([Left, Right]),
+    Fun_args = generate_fun_arguments(Missing_argument_indices, Line),
+    Fun_body = [{op, Line, Name, New_left, New_right}],
+    {'fun', Line, {clauses, [{clause, Line, Fun_args, [], Fun_body}]}}.
 
 generate_partially_applied_function(Line, Name, Args) ->
     Missing_argument_indices = find_wildcarded_indices(Args),
