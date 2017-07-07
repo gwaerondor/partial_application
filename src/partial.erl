@@ -39,13 +39,13 @@ generate_partially_applied_operation(Line, Name, Left, Right) ->
 		   ?WILDCARDED_ARGUMENT ->
 		       {var, Line, create_unapplied_argument_name(1)};
 		   _ ->
-		       Left
+		       transform(Left)
 	       end,
     New_right = case Right of
 		    ?WILDCARDED_ARGUMENT ->
 			{var, Line, create_unapplied_argument_name(2)};
 		    _ ->
-			Right
+			transform(Right)
 		end,
     Missing_argument_indices = find_wildcarded_indices([Left, Right]),
     Fun_args = generate_fun_arguments(Missing_argument_indices, Line),
