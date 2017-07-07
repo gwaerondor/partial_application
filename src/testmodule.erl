@@ -1,11 +1,12 @@
 -module(testmodule).
 
 -compile({parse_transform, partial}).
--export([hello/0]).
+-compile(export_all).
 
 hello() ->
-    Double = multiply(_, 2),
-    lists:map(Double, [1, 2, 3, 4]),
+    Integers = [1, 2, 3, 4, 5],
+    Doubles = lists:map(multiply(_, 2), Integers),
+    io:format("Doubles of ~p: ~p~n", [Integers, Doubles]),
     Tag = wrap("<", _, ">"),
     Tag("html").
                       

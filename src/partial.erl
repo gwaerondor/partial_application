@@ -63,12 +63,7 @@ replace_indices_with_unapplied_arguments([Index | Indices], Args, Line) ->
     New_args = replace_nth(Index, Args, {var, Line, create_unapplied_argument_name(Index)}),
     replace_indices_with_unapplied_arguments(Indices, New_args, Line).
 
-replace_nth(N, List, Replacement) ->
-    replace_nth(N, List, Replacement, 1).
-
-replace_nth(_, [], _, _) ->
-    [];
-replace_nth(N, [_ | T], Replacement, N) ->
+replace_nth(1, [_ | T], Replacement) ->
     [Replacement | T];
-replace_nth(N, [H | T], Replacement, Current) ->
-    [H | replace_nth(N, T, Replacement, Current + 1)].
+replace_nth(N, [H | T], Replacement) ->
+    [H | replace_nth(N - 1, T, Replacement)].
