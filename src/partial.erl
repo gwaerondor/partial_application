@@ -3,9 +3,7 @@
 -define(WILDCARDED_ARGUMENT, {var, _, '_'}).
 
 parse_transform([File, Module, Exports | Abstract], _) ->
-    io:format("Original AST: ~p~n", [Abstract]),
     Transformed = transform(Abstract),
-    io:format("Transformed AST: ~p~n", [Transformed]),
     [File, Module, Exports | Transformed].
 
 transform({op, Line, Name, Left, Right}) ->
@@ -24,7 +22,7 @@ transform({call, Line, Name, Args}) ->
     end;
 transform(Xs) when is_tuple(Xs) ->
     list_to_tuple(transform(tuple_to_list(Xs)));
-transform([X|Xs]) when is_list(Xs) ->
+transform([X|Xs]) ->
     [transform(X) | transform(Xs)];
 transform(X) ->
     X.
