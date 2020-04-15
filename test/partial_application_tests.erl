@@ -2,7 +2,7 @@
 -compile({parse_transform, partial}).
 -include_lib("eunit/include/eunit.hrl").
 
-simple_functionality_test_() ->
+core_functionality_test_() ->
     [fun arity_two_function_with_second_argument_missing/0,
      fun arity_two_function_with_first_argument_missing/0,
      fun arity_three_function_with_two_arguments_missing/0,
@@ -11,7 +11,10 @@ simple_functionality_test_() ->
      fun apply_argument_to_partially_applied_function/0,
      fun return_partially_applied_fun_from_code_block/0,
      fun apply_argument_to_nested_variable_function/0,
-     fun apply_argument_to_partially_applied_fun_in_code_block/0
+     fun apply_argument_to_partially_applied_fun_in_code_block/0,
+     fun missing_argument_in_nested_function/0,
+     fun missing_arguments_in_nesting_and_nested/0,
+     fun partial_application_of_already_partially_applied_function/0
     ].
 
 arity_two_function_with_second_argument_missing() ->
@@ -61,10 +64,6 @@ apply_argument_to_partially_applied_fun_in_code_block() ->
     Result = begin math:log10(_) end(10),
     ?assertEqual(1.0, Result).
 
-nested_functionality_test_() ->
-    [fun missing_argument_in_nested_function/0,
-     fun missing_arguments_in_nesting_and_nested/0].
-
 missing_argument_in_nested_function() ->
     Res = lists:all(erlang:is_atom(_), [a, b, c]),
     ?assert(Res).
@@ -72,9 +71,6 @@ missing_argument_in_nested_function() ->
 missing_arguments_in_nesting_and_nested() ->
     All_atoms = lists:all(erlang:is_atom(_), _),
     ?assert(All_atoms([a, b, c])).
-
-partial_application_of_variable_fun_test_() ->
-    [fun partial_application_of_already_partially_applied_function/0].
 
 -record(some_record, {first_field = 1,
                       second_field = 2}).
