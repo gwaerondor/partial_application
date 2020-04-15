@@ -6,13 +6,6 @@ parse_transform([File, Module, Exports | Abstract], _) ->
     Transformed = transform(Abstract),
     [File, Module, Exports | Transformed].
 
-transform({op, Line, Name, Left, Right}) ->
-    case lists:any(fun is_wildcard_variable/1, [Left, Right]) of
-	true ->
-	    generate_partially_applied_operation(Line, Name, transform(Left), transform(Right));
-	false ->
-	    {op, Line, Name, transform(Left), transform(Right)}
-    end;
 transform({call, Line, Name, Args}) ->
     case lists:any(fun is_wildcard_variable/1, Args) of
         true ->
@@ -31,24 +24,6 @@ is_wildcard_variable(?WILDCARDED_ARGUMENT) ->
     true;
 is_wildcard_variable(_) ->
     false.
-
-generate_partially_applied_operation(Line, Name, Left, Right) ->
-    New_left = case Left of
-		   ?WILDCARDED_ARGUMENT ->
-		       {var, Line, create_unapplied_argument_name(1)};
-		   _ ->
-		       transform(Left)
-	       end,
-    New_right = case Right of
-		    ?WILDCARDED_ARGUMENT ->
-			{var, Line, create_unapplied_argument_name(2)};
-		    _ ->
-			transform(Right)
-		end,
-    Missing_argument_indices = find_wildcarded_indices([Left, Right]),
-    Fun_args = generate_fun_arguments(Missing_argument_indices, Line),
-    Fun_body = [{op, Line, Name, New_left, New_right}],
-    {'fun', Line, {clauses, [{clause, Line, Fun_args, [], Fun_body}]}}.
 
 generate_partially_applied_function(Line, Name, Args) ->
     Missing_argument_indices = find_wildcarded_indices(Args),
@@ -73,7 +48,7 @@ generate_fun_arguments([Index | Indices], Line) ->
     [{var, Line, Argument_name} | generate_fun_arguments(Indices, Line)].
 
 create_unapplied_argument_name(Index) ->
-    Name = "Unapplied_argument_" ++ integer_to_list(Index),
+    Name = "__Unapplied_argument_" ++ integer_to_list(Index),
     list_to_atom(Name).
 
 replace_wildcarded_arguments(Line, Name, Missing_argument_indices, Args) ->
