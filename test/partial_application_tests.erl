@@ -81,6 +81,17 @@ partial_application_of_already_partially_applied_function() ->
     All_are_some_record = lists:all(Is_some_record, _),
     ?assert(All_are_some_record([#some_record{}])).
 
+partial_application_inside_assert_macro() ->
+    ?assert(lists:all(is_integer(_), [1, 2, 3])).
+
+partial_application_inside_assert_match_macro() ->
+    Keyfind = lists:keyfind(_, 1, _),
+    Properties = [{key, value}, {other_key, other_value}],
+    ?assertMatch({key, _}, lists:keyfind(_, 1, _)(key, Properties)).
+
+partial_application_inside_assert_equal_macro() ->
+    ?assertEqual(100, lists:max(_)([1, 100, 10])).
+
 intersperce([], _) ->
     [];
 intersperce([E], _) ->
