@@ -5,7 +5,13 @@
 simple_functionality_test_() ->
     [fun arity_two_function_with_second_argument_missing/0,
      fun arity_two_function_with_first_argument_missing/0,
-     fun arity_three_function_with_two_arguments_missing/0
+     fun arity_three_function_with_two_arguments_missing/0,
+     fun wrapped_in_parentheses/0,
+     fun apply_argument_to_partially_applied_function_in_parentheses/0,
+     fun apply_argument_to_partially_applied_function/0,
+     fun return_partially_applied_fun_from_code_block/0,
+     fun apply_argument_to_nested_variable_function/0,
+     fun apply_argument_to_partially_applied_fun_in_code_block/0
     ].
 
 arity_two_function_with_second_argument_missing() ->
@@ -25,6 +31,35 @@ arity_three_function_with_two_arguments_missing() ->
     Expected = "<h1>Chapter 1</h1>",
     Result = Make_header("Chapter 1"),
     ?assertEqual(Expected, Result).
+
+wrapped_in_parentheses() ->
+    Is_integer = (is_integer(_)),
+    ?assert(Is_integer(1)).
+
+apply_argument_to_partially_applied_function_in_parentheses() ->
+    One_is_integer = (is_integer(_))(1),
+    ?assert(One_is_integer).
+
+apply_argument_to_partially_applied_function() ->
+    Two_is_integer = is_integer(_)(2),
+    ?assert(Two_is_integer).
+
+return_partially_applied_fun_from_code_block() ->
+    Are_integers = begin
+                       Is_integer = is_integer(_),
+                       lists:all(Is_integer, _)
+                   end,
+    ?assert(Are_integers([1, 2, 3])).
+
+apply_argument_to_nested_variable_function() ->
+    Double = fun(X) -> X * 2 end,
+    Triple = fun(X) -> X * 3 end,
+    Result = Double(Triple(_)(1))
+    ?assertEqual(6, Double(Triple(_))(1)).
+
+apply_argument_to_partially_applied_fun_in_code_block() ->
+    Result = begin math:log10(_) end(10),
+    ?assertEqual(1.0, Result).
 
 nested_functionality_test_() ->
     [fun missing_argument_in_nested_function/0,
